@@ -1,14 +1,47 @@
 """
-John Doe's Flask API.
+Cece Smith's Flask API.
 """
-
-from flask import Flask
+import os
+import configparser
+from flask import Flask, abort
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello():
-    return "UOCIS docker demo!\n"
+# opens first valid file in the given array and parses it.
+def parse_config(config_paths):
+    config_path = None
+    for f in config_paths:
+        if os.path.isfile(f):
+            config_path = f
+            break
+
+    if config_path is None:
+        raise RuntimeError("Configuration file not found!")
+
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    return config
+
+@app.route("/<request>")
+# reads the given request and checks if there is a valid file name in /pages.
+# if so, it returns that page. if there are forbidden characters or the
+# page does not exist, it returns the appropriate error page instead.
+def respond(request):
+    if (".." in request or "~" in request):
+        abort(403)
+    else:
+        if os.path.isfile('./pages/{}'.format(request)):
+            return open('./pages/{}'.format(request), 'r')
+        else:
+            abort(404)
+
+@app.errorhandler(403)
+@app.errorhandler(404)
+def display(error):
+    parseError = str(error).split()
+    return open('./pages/{}.html'.format(parseError[0]), 'r')
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    config = parse_config(["credentials.ini", "default.ini"])
+    app.run(debug=config["SERVER"]["DEBUG"], host='0.0.0.0', \
+	port=config["SERVER"]["PORT"])
