@@ -3,7 +3,7 @@ Cece Smith's Flask API.
 """
 import os
 import configparser
-from flask import Flask, abort
+from flask import Flask, abort, send_from_directory
 
 app = Flask(__name__)
 
@@ -22,7 +22,7 @@ def parse_config(config_paths):
     config.read(config_path)
     return config
 
-@app.route("/<request>")
+@app.route("/<string:request>")
 # reads the given request and checks if there is a valid file name in /pages.
 # if so, it returns that page. if there are forbidden characters or the
 # page does not exist, it returns the appropriate error page instead.
@@ -31,7 +31,7 @@ def respond(request):
         abort(403)
     else:
         if os.path.isfile('./pages/{}'.format(request)):
-            return open('./pages/{}'.format(request), 'r')
+            return send_from_directory('./pages/', '{}'.format(request)), 200
         else:
             abort(404)
 
