@@ -39,7 +39,8 @@ def respond(request):
 @app.errorhandler(404)
 def display(error):
     parseError = str(error).split()
-    return open('./pages/{}.html'.format(parseError[0]), 'r')
+    return send_from_directory('./pages/', '{}.html'.format(parseError[0])), \
+    int(parseError[0])
 
 if __name__ == "__main__":
     config = parse_config(["credentials.ini", "default.ini"])
